@@ -45,7 +45,7 @@ cd <your-repo>
 Ensure that the main script file (for example):
 
 ```text
-heating_load_calculation.py
+heating_load.py
 ```
 
 is present in the project directory.
@@ -65,9 +65,9 @@ python3 --version
 Run the script from the command line:
 
 ```bash
-python heating_load_calculation.py
+python heating_load.py
 # or
-python3 heating_load_calculation.py
+python3 heating_load.py
 ```
 
 The script then starts an interactive dialogue in the terminal.
@@ -109,7 +109,8 @@ The script then starts an interactive dialogue in the terminal.
    - `Side length 1 (m):`
    - `Side length 2 (m):`  
      The surface area is calculated internally as:
-     $$A = \text{length_side_1} \times \text{length_side_2}$$
+     $$A = L_1 \times L_2$$
+     where $L_1$ and $L_2$ are the two side lengths.
    - `U-value (W/m²K):`  
      Thermal transmittance of the surface.
    - `Temperature on the other side of this surface (°C, e.g. outside or adjacent room):`  
@@ -164,7 +165,7 @@ $$Q_\text{trans} = A \cdot U \cdot \Delta T$$
 Where:
 
 - $A$ is the surface area in m². The script computes it from the side lengths as:
-  $$A = \text{length\_side\_1} \times \text{length\_side\_2}$$
+  $$A = L_1 \times L_2$$
 - $U$ is the U-value of the surface in W/(m²K).
 - $\Delta T$ is the temperature difference between the room air and the environment on the other side of the surface:
   $$\Delta T = \max(0,\ T_\text{room} - T_\text{other side})$$
