@@ -581,12 +581,8 @@ Use this tool at your own responsibility. No liability is assumed for decisions 
 
 ---
 
+```markdown
 ## License
 
-This project is licensed under the terms of the **MIT License**.
-
-Create a `LICENSE` file in the repository containing the standard MIT License text and reference it from here:
-
-```markdown
-This project is licensed under the terms of the MIT License. See the LICENSE file for details.
-```
+This project is licensed under the terms of the **MIT License**.  
+See the [LICENSE](./LICENSE) file in this repository for the full license text.
