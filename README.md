@@ -42,7 +42,7 @@ git clone https://github.com/<your-account>/<your-repo>.git
 cd <your-repo>
 ```
 
-Ensure that the main script file:
+Ensure that the main script file (for example):
 
 ```text
 heating_load_calculation.py
@@ -109,7 +109,7 @@ The script then starts an interactive dialogue in the terminal.
    - `Side length 1 (m):`
    - `Side length 2 (m):`  
      The surface area is calculated internally as:
-     $A = \text{length\_side\_1} \times \text{length\_side\_2}$
+     $$A = \text{length\_side\_1} \times \text{length\_side\_2}$$
    - `U-value (W/m²K):`  
      Thermal transmittance of the surface.
    - `Temperature on the other side of this surface (°C, e.g. outside or adjacent room):`  
@@ -131,7 +131,7 @@ The script then starts an interactive dialogue in the terminal.
    - `Room air volume (m³):`  
      Interior air volume of the room.
    - `Air changes per hour (1/h):`  
-     Air exchange rate \( n \).
+     Air exchange rate $n$.
    - `Temperature of supply / outside air for ventilation (°C):`  
      Usually the design outdoor temperature or supply air temperature.
 
@@ -159,19 +159,19 @@ All results are presented in Watt (W), with a conversion to kilowatt (kW) for co
 
 For each heat-transferring surface (wall, window, floor, ceiling, door, etc.), the transmission heat loss is calculated as:
 
-$Q_\text{trans} = A \cdot U \cdot \Delta T$
+$$Q_\text{trans} = A \cdot U \cdot \Delta T$$
 
 Where:
 
 - $A$ is the surface area in m². The script computes it from the side lengths as:
-  $A = \text{length\_side\_1} \times \text{length\_side\_2}$
+  $$A = \text{length\_side\_1} \times \text{length\_side\_2}$$
 - $U$ is the U-value of the surface in W/(m²K).
 - $\Delta T$ is the temperature difference between the room air and the environment on the other side of the surface:
-  $\Delta T = \max(0,\ T_\text{room} - T_\text{other side})$
+  $$\Delta T = \max(0,\ T_\text{room} - T_\text{other side})$$
 
 If the environment temperature is higher than the room temperature, the expression would become negative, but the script uses the maximum with 0 so that the contribution is never negative.
 
-The **transmission heat loss of a room** is the sum of \(Q_\text{trans}\) over all surfaces defined for that room.
+The **transmission heat loss of a room** is the sum of $Q_\text{trans}$ over all surfaces defined for that room.
 
 ### 2. Ventilation (air exchange) heat losses
 
@@ -179,7 +179,7 @@ Ventilation losses are optional and are considered per room if enabled by the us
 
 First, the volume flow rate $\dot{V}$ is derived from the room volume and the air change rate:
 
-$\dot{V} = V_\text{room} \cdot n$
+$$\dot{V} = V_\text{room} \cdot n$$
 
 Where:
 
@@ -188,15 +188,15 @@ Where:
 
 The ventilation heat loss is then:
 
-$Q_\text{vent} = \dot{V} \cdot c_\text{air} \cdot \Delta T$
+$$Q_\text{vent} = \dot{V} \cdot c_\text{air} \cdot \Delta T$$
 
 Where:
 
 - $\dot{V}$ = volume flow rate in m³/h  
 - $c_\text{air}$ = volumetric heat capacity of air, fixed in the script as:
-  $c_\text{air} = 0.34\ \text{Wh/(m³K)}$
+  $$c_\text{air} = 0.34\ \text{Wh/(m³K)}$$
 - $\Delta T$ = temperature difference between room air and supply or outdoor air:
-  $\Delta T = \max(0,\ T_\text{room} - T_\text{supply})$
+  $$\Delta T = \max(0,\ T_\text{room} - T_\text{supply})$$
 
 The units are consistent:
 
@@ -206,9 +206,7 @@ The units are consistent:
 
 which yields:
 
-\[
-Q_\text{vent} [\text{Wh/h}] = [\text{W}]
-\]
+$$Q_\text{vent} [\text{Wh/h}] = [\text{W}]$$
 
 so the result is in Watt.
 
@@ -216,15 +214,15 @@ so the result is in Watt.
 
 For each room, the total heating load is the sum of its transmission and ventilation losses:
 
-$Q_\text{room} = Q_\text{trans,room} + Q_\text{vent,room}$
+$$Q_\text{room} = Q_\text{trans,room} + Q_\text{vent,room}$$
 
 For the entire building, the total heating load is the sum over all rooms:
 
-$Q_\text{building} = \sum_\text{rooms} Q_\text{room}$
+$$Q_\text{building} = \sum_\text{rooms} Q_\text{room}$$
 
 The script prints both values in Watt and in kilowatt:
 
-$P_\text{kW} = \frac{P_\text{W}}{1000}$
+$$P_\text{kW} = \frac{P_\text{W}}{1000}$$
 
 ---
 
