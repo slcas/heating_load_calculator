@@ -13,8 +13,6 @@ class Surface:
     """
     name: str
     area_m2: float
-    length_side_1: float
-    length_side_2: float
     u_w_m2k: float
     delta_t_k: float
 
@@ -23,7 +21,6 @@ class Surface:
         Transmission heat loss through this surface in Watt.
         Q = A * U * ΔT
         """
-        self.area_m2 = self.length_side_1 * self.length_side_2
         return self.area_m2 * self.u_w_m2k * self.delta_t_k
 
 
@@ -153,8 +150,6 @@ def build_room_from_input(index: int) -> Room:
         surfaces.append(
             Surface(
                 name=s_name,
-                length_side_1=side_length_1,
-                length_side_2=side_length_2,
                 area_m2=area,
                 u_w_m2k=u_value,
                 delta_t_k=delta_t,
