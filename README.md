@@ -1,6 +1,6 @@
 # Heating Load Calculator
 
-This repository contains a Python command line tool for calculating the heating load of a building using a room-by-room approach. The calculation is based on a simplified stationary model of transmission and ventilation heat losses and is intended for estimation and educational purposes. It is **not** a complete DIN EN 12831 calculation.
+This repository contains a Python command line tool for calculating the heating load of a building using a room-by-room approach. The calculation is based on a simplified stationary model of transmission and ventilation heat losses. It is **not** a complete DIN EN 12831 calculation.
 
 The script supports an arbitrary number of rooms and, for each room, an arbitrary number of heat-transferring surfaces (walls, windows, floors, ceilings, doors, etc.).
 
