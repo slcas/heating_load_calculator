@@ -1,0 +1,240 @@
+from dataclasses import dataclass, field
+from typing import List, Optional
+
+
+# Heat capacity of air (Wh / (m³ K))
+AIR_HEAT_CAPACITY_WH_PER_M3K = 0.34
+
+
+@dataclass
+class Surface:
+    """
+    Single heat-transferring surface (wall, window, floor, ceiling, door, etc.).
+    """
+    name: str
+    area_m2: float
+    u_w_m2k: float
+    delta_t_k: float
+
+    def heat_loss_w(self) -> float:
+        """
+        Transmission heat loss through this surface in Watt.
+        Q = A * U * ΔT
+        """
+        return self.area_m2 * self.u_w_m2k * self.delta_t_k
+
+
+@dataclass
+class Ventilation:
+    """
+    Ventilation (air exchange) heat loss for one room.
+    """
+    volume_m3: float
+    air_change_per_hour: float
+    room_temp_c: float
+    supply_temp_c: float
+    air_heat_capacity_wh_m3k: float = AIR_HEAT_CAPACITY_WH_PER_M3K
+
+    def heat_loss_w(self) -> float:
+        """
+        Ventilation heat loss in Watt.
+        Q = V_dot * c_air * ΔT,
+        with V_dot in m³/h, c_air in Wh/(m³ K), ΔT in K.
+        """
+        delta_t = max(0.0, self.room_temp_c - self.supply_temp_c)
+        v_dot_m3_per_h = self.volume_m3 * self.air_change_per_hour
+        return v_dot_m3_per_h * self.air_heat_capacity_wh_m3k * delta_t
+
+
+@dataclass
+class Room:
+    """
+    One room with its setpoint temperature, surfaces and ventilation.
+    """
+    name: str
+    setpoint_temp_c: float
+    surfaces: List[Surface] = field(default_factory=list)
+    ventilation: Optional[Ventilation] = None
+
+    @property
+    def transmission_loss_w(self) -> float:
+        return sum(s.heat_loss_w() for s in self.surfaces)
+
+    @property
+    def ventilation_loss_w(self) -> float:
+        return self.ventilation.heat_loss_w() if self.ventilation else 0.0
+
+    @property
+    def total_heat_load_w(self) -> float:
+        return self.transmission_loss_w + self.ventilation_loss_w
+
+
+@dataclass
+class Building:
+    """
+    A building consisting of an arbitrary number of rooms.
+    """
+    rooms: List[Room] = field(default_factory=list)
+
+    @property
+    def total_heat_load_w(self) -> float:
+        return sum(r.total_heat_load_w for r in self.rooms)
+
+    def print_report(self) -> None:
+        label_width = 24
+        value_width = 10
+
+        print("=" * 60)
+        print("Heating load report")
+        print("=" * 60)
+
+        for room in self.rooms:
+            print(f"Room: {room.name}")
+            print(
+                f"  {'Setpoint temperature:':<{label_width}} "
+                f"{room.setpoint_temp_c:>{value_width}.1f} °C"
+            )
+            print(
+                f"  {'Transmission losses :':<{label_width}} "
+                f"{room.transmission_loss_w:>{value_width}.1f} W"
+            )
+            print(
+                f"  {'Ventilation losses  :':<{label_width}} "
+                f"{room.ventilation_loss_w:>{value_width}.1f} W"
+            )
+            # For total, align both W and kW columns
+            print(
+                f"  {'Total room load     :':<{label_width}} "
+                f"{room.total_heat_load_w:>{value_width}.1f} W "
+                f"({room.total_heat_load_w/1000:>{value_width}.3f} kW)"
+            )
+            print("-" * 60)
+
+        total_w = self.total_heat_load_w
+        print(
+            f"{'Total building load   :':<{label_width+2}} "
+            f"{total_w:>{value_width}.1f} W "
+            f"({total_w/1000:>{value_width}.3f} kW)"
+        )
+        print("=" * 60)
+
+
+def input_float(prompt: str) -> float:
+    while True:
+        try:
+            value = float(input(prompt))
+            return value
+        except ValueError:
+            print("Please enter a valid number.")
+
+
+def yes_no(prompt: str) -> bool:
+    while True:
+        answer = input(prompt + " [y/n]: ").strip().lower()
+        if answer in ("y", "yes", "j", "ja"):
+            return True
+        if answer in ("n", "no", "nein"):
+            return False
+        print("Please answer with 'y' or 'n'.")
+
+def ask_room_volume() -> float:
+    """
+    Interactively obtain the room volume in m³.
+    """
+    if yes_no("Is the room square/rectangular and you want to input its dimensions (LxWxH)?"):
+        print("Please enter the room dimensions:")
+        length = input_float("  Room length (m): ")
+        width = input_float("  Room width (m): ")
+        height = input_float("  Room height (m): ")
+        volume = length * width * height
+        print(f"  Calculated room volume: {volume:.1f} m³")
+        return volume
+
+    if yes_no("Do you want to input the room volume directly?"):
+        return input_float("  Room air volume (m³): ")
+
+    # Fallback: area * height
+    print("Please enter the area and the height:")
+    area_room = input_float("  Room area  (m²): ")
+    height_room = input_float("  Room height (m): ")
+    volume = area_room * height_room
+    print(f"  Calculated room volume: {volume:.1f} m³")
+    return volume
+
+
+def build_room_from_input(index: int) -> Room:
+    print(f"\nEntering data for room {index + 1}")
+    name = input("Room name: ").strip() or f"Room {index + 1}"
+    setpoint_temp_c = input_float("Setpoint temperature of this room (°C): ")
+
+    # Surfaces
+    surfaces: List[Surface] = []
+    surface_count = int(
+        input_float(
+            "Number of heat-transferring surfaces "
+            "(walls, windows, floors, ceilings) in this room: "
+        )
+    )
+    for i in range(surface_count):
+        print(f"\n  Surface {i + 1}")
+        s_name = (
+            input("    Name (e.g. 'exterior wall north', 'window west'): ").strip()
+            or f"Surface {i + 1}"
+        )
+        side_length_1 = input_float("    Side length 1 (m): ")
+        side_length_2 = input_float("    Side length 2 (m): ")
+        area = side_length_1 * side_length_2
+        # area = input_float("    Area (m²): ")
+        u_value = input_float("    U-value (W/m²K): ")
+        temp_other_side = input_float(
+            "    Temperature on the other side of this surface "
+            "(°C, e.g. outside or adjacent room): "
+        )
+        delta_t = max(0.0, setpoint_temp_c - temp_other_side)
+        surfaces.append(
+            Surface(
+                name=s_name,
+                area_m2=area,
+                u_w_m2k=u_value,
+                delta_t_k=delta_t,
+            )
+        )
+
+    # Ventilation
+    ventilation: Optional[Ventilation] = None
+    if yes_no("\nConsider ventilation / air exchange losses for this room?"):
+        volume = ask_room_volume()
+        ach = input_float("  Air changes per hour (1/h): ")
+        supply_temp = input_float(
+            "  Temperature of supply / outside air for ventilation (°C): "
+        )
+        ventilation = Ventilation(
+            volume_m3=volume,
+            air_change_per_hour=ach,
+            room_temp_c=setpoint_temp_c,
+            supply_temp_c=supply_temp,
+        )
+
+    return Room(
+        name=name,
+        setpoint_temp_c=setpoint_temp_c,
+        surfaces=surfaces,
+        ventilation=ventilation,
+    )
+
+
+def main() -> None:
+    print("Heating load calculation (simplified, based on DIN EN 12831)")
+    room_count = int(input_float("Number of rooms to calculate: "))
+
+    rooms: List[Room] = []
+    for i in range(room_count):
+        rooms.append(build_room_from_input(i))
+
+    building = Building(rooms=rooms)
+    print()
+    building.print_report()
+
+
+if __name__ == "__main__":
+    main()
