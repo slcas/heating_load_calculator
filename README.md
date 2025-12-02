@@ -42,10 +42,10 @@ git clone https://github.com/<your-account>/<your-repo>.git
 cd <your-repo>
 ```
 
-Ensure that the main script file (for example):
+Ensure that the main script file:
 
 ```text
-heating_load.py
+heating_load_calculation.py
 ```
 
 is present in the project directory.
