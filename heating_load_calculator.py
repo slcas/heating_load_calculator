@@ -5,6 +5,16 @@ from config_loader import build_building_from_file
 
 def main() -> None:
     print("Heating load calculation (based on DIN EN 12831)")
+    house = r"""
+       /\
+      /  \
+     /____\
+    | .-.  |
+    | | |  |
+    | |_|  |
+    |______|
+    """
+    print(house)
     if yes_no("Do you want to load the room configuration from a file?"):
         building = build_building_from_file()
     else:
