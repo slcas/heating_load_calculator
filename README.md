@@ -45,7 +45,7 @@ cd <your-repo>
 Ensure that the main script file (for example):
 
 ```text
-heating_load.py
+heating_load_calculator.py
 ```
 
 is present in the project directory.
