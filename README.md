@@ -65,9 +65,9 @@ python3 --version
 Run the script from the command line:
 
 ```bash
-python heating_load.py
+python heating_load_calculation.py
 # or
-python3 heating_load.py
+python3 heating_load_calculation.py
 ```
 
 The script then starts an interactive dialogue in the terminal.
