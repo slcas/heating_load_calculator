@@ -127,16 +127,71 @@ The script then starts an interactive dialogue in the terminal.
    Consider ventilation / air exchange losses for this room? [y/n]:
    ```
 
-   If you answer `y`, you will be prompted for:
+   If you answer `n`, no ventilation losses are considered for that room and the script proceeds to the next room.
 
-   - `Room air volume (m³):`  
-     Interior air volume of the room.
+   If you answer `y`, the script guides you through calculating the room volume in one of three ways:
+
+   1. **Rectangular room (L × W × H)**
+
+      ```text
+      Is the room square/rectangular and you want to input its dimensions (LxWxH)? [y/n]:
+      ```
+
+      If you answer `y`, you are asked for:
+
+      - `Room length (m):`
+      - `Room width (m):`
+      - `Room height (m):`
+
+      The room volume is then computed as:
+
+      $$V_\text{room} = \text{length} \times \text{width} \times \text{height}$$
+
+      and displayed, for example:
+
+      ```text
+      Calculated room volume: 45.0 m³
+      ```
+
+   2. **Direct volume input**
+
+      If you answer `n` to the rectangular question, the script asks:
+
+      ```text
+      Do you want to input the room volume directly? [y/n]:
+      ```
+
+      If you answer `y`, you are prompted for:
+
+      - `Room air volume (m³):`
+
+      and this value is used directly.
+
+   3. **Area × height**
+
+      If you answer `n` again (you do not want rectangular dimensions and do not want to input the volume directly), the script asks for floor area and room height:
+
+      - `Room area  (m²):`
+      - `Room height (m):`
+
+      The room volume is then computed as:
+
+      $$V_\text{room} = \text{area} \times \text{height}$$
+
+      and displayed, for example:
+
+      ```text
+      Calculated room volume: 45.0 m³
+      ```
+
+   After the volume has been determined by one of the three methods above, the script asks:
+
    - `Air changes per hour (1/h):`  
      Air exchange rate $n$.
    - `Temperature of supply / outside air for ventilation (°C):`  
      Usually the design outdoor temperature or supply air temperature.
 
-   If you answer `n`, ventilation losses are not considered for that room.
+   These inputs are used to calculate the ventilation (air exchange) heat losses for the room.
 
 5. **Report**
 
