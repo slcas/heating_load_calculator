@@ -159,7 +159,12 @@ def build_room_from_input(index: int) -> Room:
     # Ventilation
     ventilation: Optional[Ventilation] = None
     if yes_no("Consider ventilation / air exchange losses for this room?"):
-        volume = input_float("  Room air volume (m³): ")
+        length = input_float("  Room length (m): ")
+        width = input_float("  Room width (m): ")
+        height = input_float("  Room height (m): ")
+        volume = length * width * height
+        print(f"  Calculated room volume: {volume:.1f} m³")
+        # volume = input_float("  Room air volume (m³): ")
         ach = input_float("  Air changes per hour (1/h): ")
         supply_temp = input_float(
             "  Temperature of supply / outside air for ventilation (°C): "
