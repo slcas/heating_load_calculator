@@ -4,6 +4,8 @@ This repository contains a Python command line tool for calculating the heating 
 
 The script supports an arbitrary number of rooms and, for each room, an arbitrary number of heat-transferring surfaces (walls, windows, floors, ceilings, doors, etc.).
 
+The Heating Load Calculator is still a work in progress, so please feel free to point out any mistakes or request changes.
+
 ---
 
 ## Features
