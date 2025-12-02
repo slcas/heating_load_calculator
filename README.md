@@ -13,9 +13,9 @@ The script supports an arbitrary number of rooms and, for each room, an arbitrar
 - Any number of surfaces per room
 - Automatic surface area calculation from side lengths
 - Transmission heat losses per surface  
-  \( Q_\text{trans} = A \cdot U \cdot \Delta T \)
+  $Q_\text{trans} = A \cdot U \cdot \Delta T$
 - Optional ventilation (air exchange) losses per room  
-  \( Q_\text{vent} = \dot{V} \cdot c_\text{air} \cdot \Delta T \)
+  $Q_\text{vent} = \dot{V} \cdot c_\text{air} \cdot \Delta T$
 - Summary report:
   - Transmission, ventilation, and total load per room
   - Total building heating load in W and kW
@@ -109,9 +109,7 @@ The script then starts an interactive dialogue in the terminal.
    - `Side length 1 (m):`
    - `Side length 2 (m):`  
      The surface area is calculated internally as:
-     \[
-     A = \text{length\_side\_1} \times \text{length\_side\_2}
-     \]
+     $A = \text{length\_side\_1} \times \text{length\_side\_2}$
    - `U-value (W/m²K):`  
      Thermal transmittance of the surface.
    - `Temperature on the other side of this surface (°C, e.g. outside or adjacent room):`  
@@ -161,21 +159,15 @@ All results are presented in Watt (W), with a conversion to kilowatt (kW) for co
 
 For each heat-transferring surface (wall, window, floor, ceiling, door, etc.), the transmission heat loss is calculated as:
 
-\[
-Q_\text{trans} = A \cdot U \cdot \Delta T
-\]
+$Q_\text{trans} = A \cdot U \cdot \Delta T$
 
 Where:
 
-- \(A\) is the surface area in m². The script computes it from the side lengths as:
-  \[
-  A = \text{length\_side\_1} \times \text{length\_side\_2}
-  \]
-- \(U\) is the U-value of the surface in W/(m²K).
-- \(\Delta T\) is the temperature difference between the room air and the environment on the other side of the surface:
-  \[
-  \Delta T = \max(0,\ T_\text{room} - T_\text{other side})
-  \]
+- $A$ is the surface area in m². The script computes it from the side lengths as:
+  $A = \text{length\_side\_1} \times \text{length\_side\_2}$
+- $U$ is the U-value of the surface in W/(m²K).
+- $\Delta T$ is the temperature difference between the room air and the environment on the other side of the surface:
+  $\Delta T = \max(0,\ T_\text{room} - T_\text{other side})$
 
 If the environment temperature is higher than the room temperature, the expression would become negative, but the script uses the maximum with 0 so that the contribution is never negative.
 
@@ -185,40 +177,32 @@ The **transmission heat loss of a room** is the sum of \(Q_\text{trans}\) over a
 
 Ventilation losses are optional and are considered per room if enabled by the user.
 
-First, the volume flow rate \(\dot{V}\) is derived from the room volume and the air change rate:
+First, the volume flow rate $\dot{V}$ is derived from the room volume and the air change rate:
 
-\[
-\dot{V} = V_\text{room} \cdot n
-\]
+$\dot{V} = V_\text{room} \cdot n$
 
 Where:
 
-- \(V_\text{room}\) = room volume in m³  
-- \(n\) = air changes per hour in 1/h
+- $V_\text{room}$ = room volume in m³  
+- $n$ = air changes per hour in 1/h
 
 The ventilation heat loss is then:
 
-\[
-Q_\text{vent} = \dot{V} \cdot c_\text{air} \cdot \Delta T
-\]
+$Q_\text{vent} = \dot{V} \cdot c_\text{air} \cdot \Delta T$
 
 Where:
 
-- \(\dot{V}\) = volume flow rate in m³/h  
-- \(c_\text{air}\) = volumetric heat capacity of air, fixed in the script as:
-  \[
-  c_\text{air} = 0.34\ \text{Wh/(m³K)}
-  \]
-- \(\Delta T\) = temperature difference between room air and supply or outdoor air:
-  \[
-  \Delta T = \max(0,\ T_\text{room} - T_\text{supply})
-  \]
+- $\dot{V}$ = volume flow rate in m³/h  
+- $c_\text{air}$ = volumetric heat capacity of air, fixed in the script as:
+  $c_\text{air} = 0.34\ \text{Wh/(m³K)}$
+- $\Delta T$ = temperature difference between room air and supply or outdoor air:
+  $\Delta T = \max(0,\ T_\text{room} - T_\text{supply})$
 
 The units are consistent:
 
-- \(\dot{V}\) in m³/h  
-- \(c_\text{air}\) in Wh/(m³K)  
-- \(\Delta T\) in K  
+- $\dot{V}$ in m³/h  
+- $c_\text{air}$ in Wh/(m³K)  
+- $\Delta T$ in K  
 
 which yields:
 
@@ -232,21 +216,15 @@ so the result is in Watt.
 
 For each room, the total heating load is the sum of its transmission and ventilation losses:
 
-\[
-Q_\text{room} = Q_\text{trans,room} + Q_\text{vent,room}
-\]
+$Q_\text{room} = Q_\text{trans,room} + Q_\text{vent,room}$
 
 For the entire building, the total heating load is the sum over all rooms:
 
-\[
-Q_\text{building} = \sum_\text{rooms} Q_\text{room}
-\]
+$Q_\text{building} = \sum_\text{rooms} Q_\text{room}$
 
 The script prints both values in Watt and in kilowatt:
 
-\[
-P_\text{kW} = \frac{P_\text{W}}{1000}
-\]
+$P_\text{kW} = \frac{P_\text{W}}{1000}$
 
 ---
 
