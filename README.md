@@ -109,7 +109,7 @@ The script then starts an interactive dialogue in the terminal.
    - `Side length 1 (m):`
    - `Side length 2 (m):`  
      The surface area is calculated internally as:
-     $$A = \text{length\_side\_1} \times \text{length\_side\_2}$$
+     $$A = \text{length_side_1} \times \text{length_side_2}$$
    - `U-value (W/m²K):`  
      Thermal transmittance of the surface.
    - `Temperature on the other side of this surface (°C, e.g. outside or adjacent room):`  
