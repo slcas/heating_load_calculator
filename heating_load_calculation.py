@@ -81,21 +81,41 @@ class Building:
         return sum(r.total_heat_load_w for r in self.rooms)
 
     def print_report(self) -> None:
+        label_width = 24
+        value_width = 10
+
         print("=" * 60)
         print("Heating load report")
         print("=" * 60)
+
         for room in self.rooms:
             print(f"Room: {room.name}")
-            print(f"  Setpoint temperature: {room.setpoint_temp_c:.1f} °C")
-            print(f"  Transmission losses: {room.transmission_loss_w:.1f} W")
-            print(f"  Ventilation losses : {room.ventilation_loss_w:.1f} W")
             print(
-                f"  Total room load    : {room.total_heat_load_w:.1f} W "
-                f"({room.total_heat_load_w/1000:.3f} kW)"
+                f"  {'Setpoint temperature:':<{label_width}} "
+                f"{room.setpoint_temp_c:>{value_width}.1f} °C"
+            )
+            print(
+                f"  {'Transmission losses :':<{label_width}} "
+                f"{room.transmission_loss_w:>{value_width}.1f} W"
+            )
+            print(
+                f"  {'Ventilation losses  :':<{label_width}} "
+                f"{room.ventilation_loss_w:>{value_width}.1f} W"
+            )
+            # For total, align both W and kW columns
+            print(
+                f"  {'Total room load     :':<{label_width}} "
+                f"{room.total_heat_load_w:>{value_width}.1f} W "
+                f"({room.total_heat_load_w/1000:>{value_width}.3f} kW)"
             )
             print("-" * 60)
+
         total_w = self.total_heat_load_w
-        print(f"Total building load: {total_w:.1f} W ({total_w/1000:.3f} kW)")
+        print(
+            f"{'Total building load   :':<{label_width+2}} "
+            f"{total_w:>{value_width}.1f} W "
+            f"({total_w/1000:>{value_width}.3f} kW)"
+        )
         print("=" * 60)
 
 
@@ -204,7 +224,7 @@ def build_room_from_input(index: int) -> Room:
 
 
 def main() -> None:
-    print("Heating load calculation (simplified, based on Bosch example)")
+    print("Heating load calculation (simplified, based on DIN EN 12831)")
     room_count = int(input_float("Number of rooms to calculate: "))
 
     rooms: List[Room] = []
