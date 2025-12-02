@@ -1,4 +1,3 @@
-from config_loader import load_building_from_json
 from helpers import yes_no
 from room_builder import build_building_interactive
 from config_loader import build_building_from_file
