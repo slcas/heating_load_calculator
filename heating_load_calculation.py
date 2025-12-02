@@ -117,6 +117,30 @@ def yes_no(prompt: str) -> bool:
             return False
         print("Please answer with 'y' or 'n'.")
 
+def ask_room_volume() -> float:
+    """
+    Interactively obtain the room volume in m³.
+    """
+    if yes_no("Is the room square/rectangular and you want to input its dimensions (LxWxH)?"):
+        print("Please enter the room dimensions:")
+        length = input_float("  Room length (m): ")
+        width = input_float("  Room width (m): ")
+        height = input_float("  Room height (m): ")
+        volume = length * width * height
+        print(f"  Calculated room volume: {volume:.1f} m³")
+        return volume
+
+    if yes_no("Do you want to input the room volume directly?"):
+        return input_float("  Room air volume (m³): ")
+
+    # Fallback: area * height
+    print("Please enter the area and the height:")
+    area_room = input_float("  Room area  (m²): ")
+    height_room = input_float("  Room height (m): ")
+    volume = area_room * height_room
+    print(f"  Calculated room volume: {volume:.1f} m³")
+    return volume
+
 
 def build_room_from_input(index: int) -> Room:
     print(f"\nEntering data for room {index + 1}")
@@ -158,13 +182,8 @@ def build_room_from_input(index: int) -> Room:
 
     # Ventilation
     ventilation: Optional[Ventilation] = None
-    if yes_no("Consider ventilation / air exchange losses for this room?"):
-        length = input_float("  Room length (m): ")
-        width = input_float("  Room width (m): ")
-        height = input_float("  Room height (m): ")
-        volume = length * width * height
-        print(f"  Calculated room volume: {volume:.1f} m³")
-        # volume = input_float("  Room air volume (m³): ")
+    if yes_no("\nConsider ventilation / air exchange losses for this room?"):
+        volume = ask_room_volume()
         ach = input_float("  Air changes per hour (1/h): ")
         supply_temp = input_float(
             "  Temperature of supply / outside air for ventilation (°C): "
