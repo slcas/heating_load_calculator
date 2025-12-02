@@ -581,7 +581,6 @@ Use this tool at your own responsibility. No liability is assumed for decisions 
 
 ---
 
-```markdown
 ## License
 
 This project is licensed under the terms of the **MIT License**.  
