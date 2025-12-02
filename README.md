@@ -200,6 +200,200 @@ The script then starts an interactive dialogue in the terminal.
    - Transmission, ventilation, and total heating load for each room
    - Total heating load for the entire building
 
+
+
+## Configuration from JSON file
+
+In addition to the interactive input, the script can read the complete room configuration from a JSON file. This is useful if you want to:
+
+- Reuse the same building configuration multiple times
+- Version control your inputs
+- Edit the data in a text editor instead of answering interactive prompts
+
+### How to use JSON input
+
+When you start the script, it first asks:
+
+```text
+Do you want to load the room configuration from a file? [y/n]:
+```
+
+- If you answer `n`, the script runs in fully interactive mode as described above.
+- If you answer `y`, the script asks:
+
+  ```text
+  Enter configuration file name (JSON, default: rooms.json, relative to script folder):
+  ```
+
+  You can then:
+
+  - Press **Enter** to use the default `rooms.json` file located in the same directory as the script, or
+  - Type another file name or relative path (for example `test/haus.json`) that is also located relative to the script folder.
+
+If the file is found and valid, the script constructs the building from the JSON data and directly prints the heating load report. If the file is not found or invalid, an error message is printed and you can try a different file.
+
+### JSON structure
+
+The JSON file must have the following general structure:
+
+```json
+{
+  "rooms": [
+    {
+      "name": "Room name",
+      "setpoint_temp_c": 21.0,
+      "surfaces": [
+        {
+          "name": "exterior wall north",
+          "area_m2": 14.0,
+          "u_w_m2k": 0.25,
+          "temp_other_side_c": -10.0
+        }
+      ],
+      "ventilation": {
+        "mode": "dimensions",
+        "length_m": 5.0,
+        "width_m": 4.0,
+        "height_m": 2.5,
+        "air_change_per_hour": 0.5,
+        "supply_temp_c": -10.0
+      }
+    }
+  ]
+}
+```
+
+The semantics correspond to the interactive input:
+
+#### Room fields
+
+Each entry in `rooms` represents one room:
+
+- `name`  
+  Room name (string).
+- `setpoint_temp_c`  
+  Design indoor temperature of the room in °C (float).
+
+#### Surfaces
+
+Each room has a list `surfaces` with one or more heat-transferring elements. For each surface:
+
+- `name`  
+  Descriptive name, for example `"exterior wall north"`, `"window west"`.
+- `area_m2`  
+  Surface area in m² (float).  
+  This value corresponds to the product of side lengths you enter in the interactive mode.
+- `u_w_m2k`  
+  U-value in W/(m²K) (float).
+- `temp_other_side_c`  
+  Temperature on the other side of the surface in °C (float), for example:
+  - Design outdoor temperature for external elements
+  - Temperature of an unheated basement or attic
+  - Temperature of an adjacent room
+
+From these values the script computes the transmission heat loss in the same way as in interactive mode.
+
+#### Ventilation
+
+The `ventilation` object describes how to determine the room volume and the ventilation parameters. It supports four modes via the `mode` field:
+
+- `"none"`  
+  No ventilation calculation for this room.
+
+- `"dimensions"`  
+  Volume is computed from length, width, and height:
+  ```json
+  "ventilation": {
+    "mode": "dimensions",
+    "length_m": 5.0,
+    "width_m": 4.0,
+    "height_m": 2.5,
+    "air_change_per_hour": 0.5,
+    "supply_temp_c": -10.0
+  }
+  ```
+
+- `"volume"`  
+  Volume is given directly:
+  ```json
+  "ventilation": {
+    "mode": "volume",
+    "volume_m3": 50.0,
+    "air_change_per_hour": 0.5,
+    "supply_temp_c": -10.0
+  }
+  ```
+
+- `"area_height"`  
+  Volume is computed from floor area and height:
+  ```json
+  "ventilation": {
+    "mode": "area_height",
+    "area_m2": 20.0,
+    "room_height_m": 2.5,
+    "air_change_per_hour": 0.5,
+    "supply_temp_c": -10.0
+  }
+  ```
+
+For all modes except `"none"`, the following fields are required:
+
+- `air_change_per_hour`  
+  Air changes per hour \( n \) in 1/h (float).
+- `supply_temp_c`  
+  Temperature of supply or outdoor air in °C (float).
+
+These values are used to compute the ventilation heat loss exactly as in the interactive mode.
+
+### Minimal example
+
+A minimal JSON file with two rooms might look like this:
+
+```json
+{
+  "rooms": [
+    {
+      "name": "Living room",
+      "setpoint_temp_c": 21.0,
+      "surfaces": [
+        {
+          "name": "exterior wall north",
+          "area_m2": 14.0,
+          "u_w_m2k": 0.25,
+          "temp_other_side_c": -10.0
+        }
+      ],
+      "ventilation": {
+        "mode": "dimensions",
+        "length_m": 5.0,
+        "width_m": 4.0,
+        "height_m": 2.5,
+        "air_change_per_hour": 0.5,
+        "supply_temp_c": -10.0
+      }
+    },
+    {
+      "name": "Bedroom",
+      "setpoint_temp_c": 20.0,
+      "surfaces": [
+        {
+          "name": "exterior wall east",
+          "area_m2": 12.0,
+          "u_w_m2k": 0.25,
+          "temp_other_side_c": -10.0
+        }
+      ],
+      "ventilation": {
+        "mode": "none"
+      }
+    }
+  ]
+}
+```
+
+Placing such a file (for example `rooms.json`) next to the script and choosing “load from file” at startup produces the same type of heating load report as the interactive workflow.
+
+
 ---
 
 ## Calculation model
@@ -320,8 +514,6 @@ The script is structured into several data classes and helper functions.
   Represents a single heat-transferring surface. Fields:
   - `name: str`
   - `area_m2: float`
-  - `length_side_1: float`
-  - `length_side_2: float`
   - `u_w_m2k: float`
   - `delta_t_k: float`  
   Method:
