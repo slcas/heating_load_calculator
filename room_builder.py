@@ -33,6 +33,7 @@ def build_room_from_input(index: int) -> Room:
     print(f"\nEntering data for room {index + 1}")
     name = input("Room name: ").strip() or f"Room {index + 1}"
     setpoint_temp_c = input_float("Setpoint temperature of this room (°C): ")
+    delta_t_supply_return_k = input_float("Temperature delta between supply and return flow (K): ")
 
     # Surfaces
     surfaces: List[Surface] = []
@@ -51,7 +52,7 @@ def build_room_from_input(index: int) -> Room:
         side_length_1 = input_float("    Side length 1 (m): ")
         side_length_2 = input_float("    Side length 2 (m): ")
         area = side_length_1 * side_length_2
-        u_value = input_float("    U-value (W/m²K): ")
+        u_value = input_float("    U-value (W/m²K)  : ")
         temp_other_side = input_float(
             "    Temperature on the other side of this surface "
             "(°C, e.g. outside or adjacent room): "
@@ -84,11 +85,12 @@ def build_room_from_input(index: int) -> Room:
     return Room(
         name=name,
         setpoint_temp_c=setpoint_temp_c,
+        delta_t_supply_return_k=delta_t_supply_return_k,
         surfaces=surfaces,
         ventilation=ventilation,
     )
     
-    
+
 def build_building_interactive() -> Building:
     room_count = int(input_float("Number of rooms to calculate: "))
 
