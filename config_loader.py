@@ -38,26 +38,35 @@ def load_building_from_json(path: str) -> Building:
     Load building configuration from a JSON file and return a Building object.
     Expected structure (simplified):
 
-    {
-      "rooms": [
         {
-          "name": "Living room",
-          "setpoint_temp_c": 21.0,
-          "surfaces": [
-            {
-              "name": "...",
-              "area_m2": 5.0,
-              "u_w_m2k": 0.25,
-              "temp_other_side_c": -10.0
-            }
-          ],
-          "ventilation": {
-            "mode": "dimensions" | "volume" | "area_height" | "none",
-            ...
-          }
+            "rooms": [
+                {
+                    "name": "Living room",
+                    "setpoint_temp_c": 21.0,
+                    "surfaces": [
+                        # Option A: provide area directly
+                        {
+                            "name": "...",
+                            "area_m2": 5.0,
+                            "u_w_m2k": 0.25,
+                            "temp_other_side_c": -10.0
+                        },
+                        # Option B: provide side lengths (square or rectangle)
+                        {
+                            "name": "...",
+                            "side_length_1": 10.0,
+                            # optional: "side_length_2": 8.0  # if omitted, side_length_1 is used (square)
+                            "u_w_m2k": 0.25,
+                            "temp_other_side_c": -10.0
+                        }
+                    ],
+                    "ventilation": {
+                        "mode": "dimensions" | "volume" | "area_height" | "none",
+                        ...
+                    }
+                }
+            ]
         }
-      ]
-    }
     """
     raw = Path(path).read_text(encoding="utf-8")
     data = json.loads(raw)
@@ -73,7 +82,20 @@ def load_building_from_json(path: str) -> Building:
         surfaces: List[Surface] = []
         for s_cfg in r_cfg.get("surfaces", []):
             s_name = s_cfg.get("name", "Surface")
-            area = float(s_cfg["area_m2"])
+
+            # Area may be provided directly as `area_m2`, or computed from
+            # side lengths `side_length_1` (and optional `side_length_2`).
+            if "area_m2" in s_cfg:
+                area = float(s_cfg["area_m2"])
+            elif "side_length_1" in s_cfg:
+                side1 = float(s_cfg["side_length_1"])
+                side2 = float(s_cfg.get("side_length_2", side1))
+                area = side1 * side2
+            else:
+                raise KeyError(
+                    "Surface must define either 'area_m2' or 'side_length_1'"
+                )
+
             u_value = float(s_cfg["u_w_m2k"])
             temp_other_side = float(s_cfg["temp_other_side_c"])
             delta_t = max(0.0, setpoint_temp_c - temp_other_side)
