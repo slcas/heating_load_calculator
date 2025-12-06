@@ -20,6 +20,7 @@ The Heating Load Calculator is still a work in progress, so please feel free to 
   $Q_\text{vent} = \dot{V} \cdot c_\text{air} \cdot \Delta T$
 - Summary report:
   - Transmission, ventilation, and total load per room
+  - Required heating water flow rate per room in l/min
   - Total building heating load in W and kW
 
 ---
@@ -74,7 +75,11 @@ python3 heating_load_calculator.py
 
 The script then starts an interactive dialogue in the terminal.
 
-### Input sequence
+At startup, the script first asks whether you want to load the room configuration from a file or enter all data interactively.
+
+### Input sequence (interactive mode)
+
+If you choose not to load from a file, the interactive workflow is as follows.
 
 1. **Number of rooms**
 
@@ -95,6 +100,9 @@ The script then starts an interactive dialogue in the terminal.
      If left empty, a default such as `Room 1` is used.
    - `Setpoint temperature of this room (°C):`  
      Design indoor temperature for this room.
+   - `Temperature delta between supply and return flow (K):`  
+     Temperature difference between the supply and return flow of the heating circuit serving this room.  
+     This value is used to derive the required volumetric flow rate of the heating medium based on the calculated room heat load.
 
 3. **Surfaces in the room**
 
@@ -120,6 +128,12 @@ The script then starts an interactive dialogue in the terminal.
      - Design outdoor temperature for exterior elements
      - Temperature of an unheated basement, stairwell, or garage
      - Temperature of an adjacent room
+
+   From these inputs, the script derives the temperature difference
+
+   $$\Delta T = \max(0,\ T_\text{room} - T_\text{other side})$$
+
+   and the transmission heat loss for each surface.
 
 4. **Ventilation (optional)**
 
@@ -200,9 +214,10 @@ The script then starts an interactive dialogue in the terminal.
    After all rooms have been processed, the script prints a summary report that includes:
 
    - Transmission, ventilation, and total heating load for each room
-   - Total heating load for the entire building
+   - Required heating water flow rate for each room (in l/min)
+   - Total heating load for the entire building (in W and kW)
 
-
+---
 
 ## Configuration from JSON file
 
@@ -224,13 +239,13 @@ Do you want to load the room configuration from a file? [y/n]:
 - If you answer `y`, the script asks:
 
   ```text
-  Enter configuration file name (JSON, default: rooms.json, relative to script folder):
+  Enter path to configuration file (JSON, default: rooms.json):
   ```
 
   You can then:
 
-  - Press **Enter** to use the default `rooms.json` file located in the same directory as the script, or
-  - Type another file name or relative path (for example `test/haus.json`) that is also located relative to the script folder.
+  - Press **Enter** to use the default `rooms.json` file located in the current working directory, or
+  - Type another file name or relative path (for example `test/haus.json`).
 
 If the file is found and valid, the script constructs the building from the JSON data and directly prints the heating load report. If the file is not found or invalid, an error message is printed and you can try a different file.
 
@@ -244,6 +259,7 @@ The JSON file must have the following general structure:
     {
       "name": "Room name",
       "setpoint_temp_c": 21.0,
+      "delta_t_supply_return_k": 10.0,
       "surfaces": [
         {
           "name": "exterior wall north",
@@ -265,7 +281,7 @@ The JSON file must have the following general structure:
 }
 ```
 
-The semantics correspond to the interactive input:
+The semantics correspond to the interactive input.
 
 #### Room fields
 
@@ -275,23 +291,43 @@ Each entry in `rooms` represents one room:
   Room name (string).
 - `setpoint_temp_c`  
   Design indoor temperature of the room in °C (float).
+- `delta_t_supply_return_k`  
+  Temperature difference between supply and return flow (K) used for the flow rate calculation (float).
 
 #### Surfaces
 
-Each room has a list `surfaces` with one or more heat-transferring elements. For each surface:
+Each room has a list `surfaces` with one or more heat-transferring elements.
 
-- `name`  
-  Descriptive name, for example `"exterior wall north"`, `"window west"`.
-- `area_m2`  
-  Surface area in m² (float).  
-  This value corresponds to the product of side lengths you enter in the interactive mode.
-- `u_w_m2k`  
-  U-value in W/(m²K) (float).
-- `temp_other_side_c`  
-  Temperature on the other side of the surface in °C (float), for example:
-  - Design outdoor temperature for external elements
-  - Temperature of an unheated basement or attic
-  - Temperature of an adjacent room
+For each surface, you can either provide the area directly or let the script derive it from side lengths:
+
+- **Option 1: Direct area**
+
+  - `name`  
+    Descriptive name, for example `"exterior wall north"`, `"window west"`.
+  - `area_m2`  
+    Surface area in m² (float).
+  - `u_w_m2k`  
+    U-value in W/(m²K) (float).
+  - `temp_other_side_c`  
+    Temperature on the other side of the surface in °C (float), for example:
+    - Design outdoor temperature for external elements
+    - Temperature of an unheated basement or attic
+    - Temperature of an adjacent room
+
+- **Option 2: Side lengths**
+
+  Instead of `area_m2`, you may provide:
+
+  - `side_length_1`  
+    First side length in m (float).
+  - `side_length_2` (optional)  
+    Second side length in m (float). If omitted, `side_length_1` is used again, which corresponds to a square surface.
+
+  In this case the script computes:
+
+  $$A = \text{side\_length\_1} \times \text{side\_length\_2}$$
+
+  and uses this as `area_m2` internally.
 
 From these values the script computes the transmission heat loss in the same way as in interactive mode.
 
@@ -357,6 +393,7 @@ A minimal JSON file with two rooms might look like this:
     {
       "name": "Living room",
       "setpoint_temp_c": 21.0,
+      "delta_t_supply_return_k": 10.0,
       "surfaces": [
         {
           "name": "exterior wall north",
@@ -377,6 +414,7 @@ A minimal JSON file with two rooms might look like this:
     {
       "name": "Bedroom",
       "setpoint_temp_c": 20.0,
+      "delta_t_supply_return_k": 10.0,
       "surfaces": [
         {
           "name": "exterior wall east",
@@ -395,7 +433,6 @@ A minimal JSON file with two rooms might look like this:
 
 Placing such a file (for example `rooms.json`) next to the script and choosing “load from file” at startup produces the same type of heating load report as the interactive workflow.
 
-
 ---
 
 ## Calculation model
@@ -405,7 +442,7 @@ The calculation model is stationary and consists of two main contributions:
 1. Transmission heat losses through building elements  
 2. Ventilation (air exchange) heat losses
 
-All results are presented in Watt (W), with a conversion to kilowatt (kW) for convenience.
+All results are presented in Watt (W), with a conversion to kilowatt (kW) for convenience at the building level. In addition, the script derives the required volumetric flow rate of the heating medium per room.
 
 ### 1. Transmission heat losses
 
@@ -415,7 +452,7 @@ $$Q_\text{trans} = A \cdot U \cdot \Delta T$$
 
 Where:
 
-- $A$ is the surface area in m². The script computes it from the side lengths as:
+- $A$ is the surface area in m². The script either takes it directly from `area_m2` or computes it from side lengths:
   $$A = L_1 \times L_2$$
 - $U$ is the U-value of the surface in W/(m²K).
 - $\Delta T$ is the temperature difference between the room air and the environment on the other side of the surface:
@@ -472,9 +509,28 @@ For the entire building, the total heating load is the sum over all rooms:
 
 $$Q_\text{building} = \sum_\text{rooms} Q_\text{room}$$
 
-The script prints both values in Watt and in kilowatt:
+The script prints the total building load in Watt and in kilowatt:
 
 $$P_\text{kW} = \frac{P_\text{W}}{1000}$$
+
+### 4. Required volumetric flow rate of the heating medium
+
+For each room, the script also derives the required volumetric flow rate of the heating medium (for example water) based on the specified temperature difference between supply and return flow:
+
+- Heat capacity of water (assumed):  
+  $$c_\text{water} = 1.163\ \text{Wh/(kgK)}$$
+
+Given the room heat load $Q_\text{room}$ (in W = Wh/h) and the supply/return temperature difference $\Delta T_\text{water}$ (in K), the required mass flow rate is:
+
+$$\dot{m} = \frac{Q_\text{room}}{c_\text{water} \cdot \Delta T_\text{water}} \quad [\text{kg/h}]$$
+
+Assuming a density of water of approximately $1\ \text{kg/l}$, the mass flow rate equals the volumetric flow rate in l/h:
+
+$$\dot{V}_\text{water} \approx \dot{m} \quad [\text{l/h}]$$
+
+The script computes this internal flow rate and reports it in l/min:
+
+$$\dot{V}_\text{water} [\text{l/min}] = \frac{\dot{V}_\text{water} [\text{l/h}]}{60}$$
 
 ---
 
@@ -483,26 +539,30 @@ $$P_\text{kW} = \frac{P_\text{W}}{1000}$$
 A typical output of the script may look as follows (example values):
 
 ```text
-============================================================
+======================================================================
 Heating load report
-============================================================
+======================================================================
 Room: Living room
-  Setpoint temperature: 21.0 °C
-  Transmission losses: 1234.5 W
-  Ventilation losses :  345.6 W
-  Total room load    : 1580.1 W (1.580 kW)
-------------------------------------------------------------
+  Setpoint temperature      :              21.0 °C
+  Delta supply-return flow  :              10.0 K
+  Transmission losses       :            1234.5 W
+  Ventilation losses        :             345.6 W
+  Total room load           :            1580.1 W
+  Flow rate                 :               2.3 l/min
+----------------------------------------------------------------------
 Room: Bedroom
-  Setpoint temperature: 20.0 °C
-  Transmission losses:  900.0 W
-  Ventilation losses :  200.0 W
-  Total room load    : 1100.0 W (1.100 kW)
-------------------------------------------------------------
-Total building load: 2680.1 W (2.680 kW)
-============================================================
+  Setpoint temperature      :              20.0 °C
+  Delta supply-return flow  :              10.0 K
+  Transmission losses       :             900.0 W
+  Ventilation losses        :             200.0 W
+  Total room load           :            1100.0 W
+  Flow rate                 :               1.6 l/min
+----------------------------------------------------------------------
+Total building load         :            2680.1 W      (     2.680 kW)
+======================================================================
 ```
 
-The actual numerical values depend on the input geometry, U-values, temperatures, and ventilation parameters.
+The actual numerical values depend on the input geometry, U-values, temperatures, ventilation parameters, and the chosen supply/return temperature difference.
 
 ---
 
@@ -520,7 +580,9 @@ The script is structured into several data classes and helper functions.
   - `delta_t_k: float`  
   Method:
   - `heat_loss_w()`  
-    Recomputes `area_m2` from side lengths and returns the transmission heat loss in Watt.
+    Returns the transmission heat loss in Watt based on  
+    $$Q_\text{trans} = A \cdot U \cdot \Delta T$$  
+    using the stored `area_m2`, `u_w_m2k`, and `delta_t_k`.
 
 - `Ventilation`  
   Represents the ventilation behaviour of a room. Fields:
@@ -537,30 +599,46 @@ The script is structured into several data classes and helper functions.
   Represents a room. Fields:
   - `name: str`
   - `setpoint_temp_c: float`
+  - `delta_t_supply_return_k: float`
   - `surfaces: List[Surface]`
   - `ventilation: Optional[Ventilation]`  
   Properties:
-  - `transmission_loss_w`
-  - `ventilation_loss_w`
-  - `total_heat_load_w`
+  - `transmission_loss_w`  
+    Sum of transmission losses over all surfaces.
+  - `ventilation_loss_w`  
+    Ventilation loss, or `0.0` if no ventilation is defined.
+  - `total_heat_load_w`  
+    Sum of transmission and ventilation losses for the room.
+  - `flow_rate_l_h`  
+    Required volumetric flow rate of the heating medium in l/h, derived from `total_heat_load_w` and `delta_t_supply_return_k`.
 
 - `Building`  
   Represents the building as a collection of rooms. Fields:
   - `rooms: List[Room]`  
   Properties and methods:
-  - `total_heat_load_w`
-  - `print_report()` to generate the console report
+  - `total_heat_load_w`  
+    Sum of `total_heat_load_w` over all rooms.
+  - `print_report()`  
+    Prints a formatted console report containing, for each room, the setpoint temperature, supply/return temperature difference, transmission and ventilation losses, total heat load, and required flow rate in l/min, followed by the total building load in W and kW.
 
-### Helper functions
+### Helper and builder functions
 
 - `input_float(prompt: str) -> float`  
   Reads a floating-point value from standard input with validation.
 - `yes_no(prompt: str) -> bool`  
   Reads a yes/no answer (`y/n`, `yes/no`, `ja/nein`).
+- `ask_room_volume() -> float`  
+  Interactively obtains the room volume in m³ via dimensions, direct volume input, or area × height.
 - `build_room_from_input(index: int) -> Room`  
   Collects all relevant data for a single room interactively and returns a `Room`.
+- `build_building_interactive() -> Building`  
+  Builds a `Building` by repeatedly calling `build_room_from_input`.
+- `load_building_from_json(path: str) -> Building`  
+  Loads a `Building` configuration from a JSON file.
+- `build_building_from_file() -> Building`  
+  Asks for a configuration file path, loads it via `load_building_from_json`, and returns the resulting `Building`.
 - `main()`  
-  Entry point, orchestrates reading input, building the data model, and printing the report.
+  Entry point in `heating_load_calculator.py`. Asks whether to load the configuration from a file or use interactive input, constructs the corresponding `Building`, and prints the report.
 
 ---
 
