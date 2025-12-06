@@ -99,35 +99,35 @@ class Building:
         for room in self.rooms:
             print(f"Room: {room.name}")
             print(
-                f"  {'Setpoint temperature      :':<{label_width}} "
+                f"  {'Setpoint temperature        :':<{label_width}} "
                 f"{room.setpoint_temp_c:>{value_width}.1f} °C"
             )
             print(
-                f"  {'Delta supply-return flow  :':<{label_width}} "
+                f"  {'Delta T supply-return flow  :':<{label_width}} "
                 f"{room.delta_t_supply_return_k:>{value_width}.1f} K"
             )
             print(
-                f"  {'Transmission losses       :':<{label_width}} "
+                f"  {'Transmission losses         :':<{label_width}} "
                 f"{room.transmission_loss_w:>{value_width}.1f} W"
             )
             print(
-                f"  {'Ventilation losses        :':<{label_width}} "
+                f"  {'Ventilation losses          :':<{label_width}} "
                 f"{room.ventilation_loss_w:>{value_width}.1f} W"
             )
             # For total, align both W and kW columns
             print(
-                f"  {'Total room load           :':<{label_width}} "
+                f"  {'Total room load             :':<{label_width}} "
                 f"{room.total_heat_load_w:>{value_width}.1f} W "
             )
             print(
-                f"  {'Flow rate                 :':<{label_width}} "
+                f"  {'Flow rate                   :':<{label_width}} "
                 f"{room.flow_rate_l_h/60:>{value_width}.1f} l/min "
             )
             print("-" * num_dash_equals)
 
         total_w = self.total_heat_load_w
         print(
-            f"{'Total building load         :':<{label_width+2}} "
+            f"{'Total building load           :':<{label_width+2}} "
             f"{total_w:>{value_width}.1f} W "
             f"     ({total_w/1000:>{value_width}.3f} kW)"
         )
