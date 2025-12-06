@@ -325,9 +325,9 @@ For each surface, you can either provide the area directly or let the script der
 
   In this case the script computes:
 
-  $$A = \text{side\_length\_1} \times \text{side\_length\_2}$$
+  $$A = L_1 \times L_2$$
 
-  and uses this as `area_m2` internally.
+  where $L_1$ and $L_2$ are the side lengths to calulate `area_m2` internally.
 
 From these values the script computes the transmission heat loss in the same way as in interactive mode.
 
