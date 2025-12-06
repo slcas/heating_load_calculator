@@ -77,6 +77,7 @@ def load_building_from_json(path: str) -> Building:
     for r_cfg in rooms_cfg:
         name = r_cfg.get("name", "Room")
         setpoint_temp_c = float(r_cfg["setpoint_temp_c"])
+        delta_t_supply_return_k = float(r_cfg["delta_t_supply_return_k"])
 
         # Surfaces
         surfaces: List[Surface] = []
@@ -131,6 +132,7 @@ def load_building_from_json(path: str) -> Building:
             Room(
                 name=name,
                 setpoint_temp_c=setpoint_temp_c,
+                delta_t_supply_return_k=delta_t_supply_return_k,
                 surfaces=surfaces,
                 ventilation=ventilation,
             )
